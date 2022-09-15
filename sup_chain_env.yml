@@ -1,0 +1,14 @@
+name: sup_chain_env
+channels:
+  - defaults
+  - http://mirror1.csvd.census.gov/python/repo.continuum.io/pkgs/main
+  - http://mirror1.csvd.census.gov/python/repo.continuum.io/pkgs/free
+  - http://mirror1.csvd.census.gov/python/repo.continuum.io/pkgs/r
+  - http://mirror1.csvd.census.gov/python/repo.continuum.io/pkgs/mro
+  - http://mirror1.csvd.census.gov/python/repo.continuum.io/pkgs/msys2
+  - http://mirror1.csvd.census.gov/python/conda-forge
+  - http://mirror1.csvd.census.gov/python/gurobi
+dependencies:
+  - python==3.10.4
+  - pandas==1.4.3
+prefix: C:\Anaconda3\envs\sup_chain_env
