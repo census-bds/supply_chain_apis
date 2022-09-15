@@ -1,8 +1,7 @@
 import pandas as pd
 import requests
 from config import CENSUS_API_KEY
-from urls import BASE_URL_CENSUS, INTL_TRADE, ASM
-from api_utils import clean_api_text
+from urls import BASE_URL_CENSUS
 
 class DataSource():
     pass
@@ -34,12 +33,10 @@ class Api(DataSource):
 class IntlTrade(Api):
     def __init__(self):
         super().__init__()
-        self.url += "intltrade/"
 
     def naics_lookup(self, exports=True, year=2022):
-        url = self.url + 'exports' if exports else 'imports'
-        url += 'timeseries/statenaics?get=STATE,NAICS,ALL_VAL_YR&YEAR=2021&key={}'.format(
-            CENSUS_API_KEY
+        url = self.url + 'timeseries/intltrade/{}/statenaics?get=STATE,NAICS,ALL_VAL_YR&YEAR=2021&key={}'.format(
+            'exports' if exports else 'imports', CENSUS_API_KEY
         )
         return self.get_request(url)
 
@@ -47,9 +44,20 @@ class EconomicCensus(Api):
     def __init__(self):
         super().__init__()
 
+    def remove_d_flag(self, data):
+        df = pd.DataFrame(data[1:], columns=data[0])
+        flag_cols = [col for col in df if col[-2:] == "_F"]
+        for col in flag_cols:
+            df[col[:-2]] = df.apply(
+                lambda x: None if x[col] == 'D' else x[col[:-2]], axis=1
+            )
+        df.drop(columns=flag_cols, inplace=True)
+        return [list(df.columns)] + df.values.tolist()
+
+
     def naics_lookup(self):
         url = self.url + "2017/ecnbasic?get=ESTAB,ESTAB_F&for=state:*&NAICS2017=*&key={}".format(
             CENSUS_API_KEY
         )
-        print(url)
-        return self.get_request(url)
+        
+        return self.remove_d_flag(self.get_request(url))
