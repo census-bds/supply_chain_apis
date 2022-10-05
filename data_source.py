@@ -19,27 +19,13 @@ class Api(DataSource):
         self.url = BASE_URL_CENSUS
         self.file_path = 'data/'
 
-    def clean_api_text(self, api_text):
-        api_rows = api_text.split('\n')
-        api_rows[0] = api_rows[0][2:-2]
-        for i in range(1, len(api_rows) - 1):
-            api_rows[i] = api_rows[i][1:-2]
-        api_rows[-1] = api_rows[-2][1:-2]
-        api_rows = [x.split('","') for x in api_rows]
-        for i in range(len(api_rows)):
-            api_rows[i] = [val.replace('"', '') for val in api_rows[i]]
-        return api_rows
-
     def get_request(self, url):
-        resp = requests.get(url).text
-        assert resp, "Invalid response"
-        return self.clean_api_text(resp)
+        return requests.get(url).json(strict=False)
 
     def write_csv(self, output, file_name): 
-        with open(self.file_path + file_name, 'w') as f:
-            writer = csv.writer(f)
-            for row in output:
-                writer.writerow(row)
+        pd.DataFrame(output[1:], columns=output[0]).to_csv(
+            self.file_path + file_name, index=False
+        )
         return
 
 
@@ -54,11 +40,21 @@ class IntlTrade(Api):
 
     def state_lookup(self, exports=True, year=2022):
         url = self.url + \
-            'timeseries/intltrade/{}/statehs?get=STATE,E_COMMODITY,E_COMMODITY_LDESC,{}_VAL_MO&YEAR={}&MONTH=12&COMM_LVL=HS6&key={}'.format(
-                'exports' if exports else 'imports', 'ALL' if exports else 'GEN', year, CENSUS_API_KEY
+            'timeseries/intltrade/{}/statehs?get=STATE,{}_COMMODITY,{}_COMMODITY_LDESC,{}_VAL_MO&YEAR={}&MONTH=12&COMM_LVL=HS6&key={}'.format(
+                'exports' if exports else 'imports',
+                'E' if exports else 'I',
+                'E' if exports else 'I',
+                'ALL' if exports else 'GEN',
+                year, 
+                CENSUS_API_KEY
             )
         print(url)
         return self.get_request(url)
+    
+    def export_all(self):
+        #self.write_csv(self.state_lookup(year=2021), 'state_hs_exports_2021.csv')
+        self.write_csv(self.state_lookup(exports=False, year=2021), 'state_hs_imports_2021.csv')
+        return
 
 class EconomicCensus(Api):
     def __init__(self):
@@ -80,4 +76,5 @@ class EconomicCensus(Api):
             CENSUS_API_KEY
         )
         print(url)
-        return self.remove_d_flag(self.get_request(url))
+        return self.get_request(url)
+        # return self.remove_d_flag(self.get_request(url))
