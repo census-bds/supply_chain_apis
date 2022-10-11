@@ -1,10 +1,13 @@
 import pandas as pd
 import requests
-import csv
+import sqlite3
 from config import CENSUS_API_KEY
 from urls import BASE_URL_CENSUS
 
 class DataSource():
+    def __init__(self, db_file):
+        self.con = sqlite3.connect(db_file)
+
     def most_recent_naics(self, naics, year):
         # Harmonizes naics to the most recent version
         return
@@ -16,6 +19,7 @@ class DataSource():
 
 class Api(DataSource):
     def __init__(self):
+        super().__init__()
         self.url = BASE_URL_CENSUS
         self.file_path = 'data/'
 
@@ -29,9 +33,6 @@ class Api(DataSource):
         return
 
 
-    # def pull_by_commodity(self):
-    #     pass
-
 
 class IntlTrade(Api):
     def __init__(self):
@@ -40,9 +41,8 @@ class IntlTrade(Api):
 
     def state_lookup(self, exports=True, year=2022):
         url = self.url + \
-            'timeseries/intltrade/{}/statehs?get=STATE,{}_COMMODITY,{}_COMMODITY_LDESC,{}_VAL_MO&YEAR={}&MONTH=12&COMM_LVL=HS6&key={}'.format(
+            'timeseries/intltrade/{}/statehs?get=STATE,{}_COMMODITY,{}_VAL_MO&YEAR={}&MONTH=12&COMM_LVL=HS6&key={}'.format(
                 'exports' if exports else 'imports',
-                'E' if exports else 'I',
                 'E' if exports else 'I',
                 'ALL' if exports else 'GEN',
                 year, 
@@ -50,11 +50,7 @@ class IntlTrade(Api):
             )
         print(url)
         return self.get_request(url)
-    
-    def export_all(self):
-        #self.write_csv(self.state_lookup(year=2021), 'state_hs_exports_2021.csv')
-        self.write_csv(self.state_lookup(exports=False, year=2021), 'state_hs_imports_2021.csv')
-        return
+
 
 class EconomicCensus(Api):
     def __init__(self):
@@ -76,5 +72,14 @@ class EconomicCensus(Api):
             CENSUS_API_KEY
         )
         print(url)
+        return self.remove_d_flag(self.get_request(url))
+
+class CountyBusinessPatterns(Api):
+    def __init__(self):
+        super().__init__()
+    
+    def county_lookup(self):
+        url = self.url + "2020/cbp?get=GEO_ID,ESTAB,NAICS2017_LABEL,NAME&for=COUNTY:*&NAICS2017=*&key={}".format(
+            CENSUS_API_KEY
+        )
         return self.get_request(url)
-        # return self.remove_d_flag(self.get_request(url))
