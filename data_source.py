@@ -1,12 +1,9 @@
 import pandas as pd
 import requests
-import sqlite3
 from config import CENSUS_API_KEY
 from urls import BASE_URL_CENSUS
 
 class DataSource():
-    def __init__(self, db_file):
-        self.con = sqlite3.connect(db_file)
 
     def most_recent_naics(self, naics, year):
         # Harmonizes naics to the most recent version
@@ -39,10 +36,12 @@ class IntlTrade(Api):
         super().__init__()
         self.file_path = 'data/Intl Trade/'
 
-    def state_lookup(self, exports=True, year=2022):
+    def geo_lookup(self, geo='state', exports=True, year=2022):
         url = self.url + \
-            'timeseries/intltrade/{}/statehs?get=STATE,{}_COMMODITY,{}_VAL_MO&YEAR={}&MONTH=12&COMM_LVL=HS6&key={}'.format(
+            'timeseries/intltrade/{}/{}hs?get={},{}_COMMODITY,{}_VAL_MO&YEAR={}&MONTH=12&COMM_LVL=HS6&key={}'.format(
                 'exports' if exports else 'imports',
+                'state' if geo == 'state' else 'port',
+                'STATE' if geo == 'state' else 'PORT,PORT_NAME',
                 'E' if exports else 'I',
                 'ALL' if exports else 'GEN',
                 year, 
