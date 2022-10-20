@@ -42,6 +42,12 @@ class IntlTrade(Api):
 
     #TO DO: add up the weights by all the different mode of transit types
 
+    def schedule_d(self):
+        url = "https://www.census.gov/foreign-trade/schedules/d/dist3.txt"
+        url_text = requests.get(url).text
+        url_text = url_text.split("\n")
+        return url_text
+
     def geo_lookup(self, geo='state', exports=True, year=2022):
         url = self.url + \
             'timeseries/intltrade/{}/{}hs?get={},{}_COMMODITY,{}_VAL_MO&YEAR={}&MONTH=12&COMM_LVL=HS6&key={}'.format(
