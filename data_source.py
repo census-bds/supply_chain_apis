@@ -43,10 +43,18 @@ class IntlTrade(Api):
     #TO DO: add up the weights by all the different mode of transit types
 
     def schedule_d(self):
+        def _split_first_comma(row):
+            return [row[:row.find(",")], row[row.find(",") + 1:]]
         url = "https://www.census.gov/foreign-trade/schedules/d/dist3.txt"
-        url_text = requests.get(url).text
-        url_text = url_text.split("\n")
-        return url_text
+        sched_d = requests.get(url).text
+        sched_d = sched_d.split("\n")
+        sched_d = [row.replace('"', '').replace('\r', '') for row in sched_d]
+        sched_d = [_split_first_comma(row) for row in sched_d]
+        sched_d = [_split_first_comma(row[1]) for row in sched_d]
+        return pd.DataFrame(
+            data=[row for row in sched_d if row[0].isdigit()],
+            columns=['port', 'port_name']
+        )
 
     def geo_lookup(self, geo='state', exports=True, year=2022):
         url = self.url + \
