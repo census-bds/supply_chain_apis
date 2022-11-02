@@ -67,7 +67,7 @@ class IntlTrade(Api):
         year: the year to pull
         '''
         url = self.url + \
-            'timeseries/intltrade/{}/{}hs?get={}{}_COMMODITY,{}_VAL_MO&YEAR={}&MONTH=12&COMM_LVL={}&key={}'.format(
+            'timeseries/intltrade/{}/{}hs?get={}{}_COMMODITY,{}_VAL_YR&YEAR={}&MONTH=12&COMM_LVL={}&key={}'.format(
                 'exports' if exports else 'imports',
                 geo if geo else '',
                 geo.upper() + "," if geo else "",
@@ -90,9 +90,11 @@ class IntlTrade(Api):
             imp = pd.DataFrame(data=imp[1:], columns=imp[0]).drop(
                 columns=['YEAR', 'COMM_LVL', 'MONTH']
             )
+            imp = imp.loc[imp['GEN_VAL_YR'] != '0']
             exp = pd.DataFrame(data=exp[1:], columns=exp[0]).drop(
                 columns=['YEAR', 'COMM_LVL', 'MONTH']
             )
+            exp = exp.loc[exp['ALL_VAL_YR'] != '0']
             combined = imp.merge(
                 exp,
                 left_on=['I_COMMODITY', geo.upper()] if geo else 'I_COMMODITY',
@@ -111,9 +113,17 @@ class IntlTrade(Api):
         all_years_combined.drop(
             columns=['I_COMMODITY', 'E_COMMODITY'], inplace=True
         )
-        return all_years_combined.rename(
-            columns={'GEN_VAL_MO': 'import_value', 'ALL_VAL_MO': 'export_value'}
+        all_years_combined.rename(
+            columns={'GEN_VAL_YR': 'import_value', 'ALL_VAL_YR': 'export_value'},
+            inplace=True
         )
+        all_years_combined['import_value'] = all_years_combined['import_value'].apply(
+            lambda x: 0 if pd.isnull(x) else x
+        )
+        all_years_combined['export_value'] = all_years_combined['export_value'].apply(
+            lambda x: 0 if pd.isnull(x) else x
+        )
+        return all_years_combined
 
 
 
