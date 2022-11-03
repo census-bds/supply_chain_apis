@@ -43,6 +43,7 @@ class IntlTrade(Api):
     #TO DO: add up the weights by all the different mode of transit types
 
     def schedule_d(self):
+        # Grabs and cleans the schedule D file and returns a dataframe of port codes and their names
         def _split_first_comma(row):
             return [row[:row.find(",")], row[row.find(",") + 1:]]
         url = "https://www.census.gov/foreign-trade/schedules/d/dist3.txt"
@@ -55,53 +56,80 @@ class IntlTrade(Api):
             data=[row for row in sched_d if row[0].isdigit()],
             columns=['port', 'port_name']
         )
+<<<<<<< HEAD
 # geo can be 'state', 'port', or none... will add month as parameter 
     def geo_lookup(self, geo='state', exports=True, year=2022):
+=======
+
+    def geo_hs_lookup(self, geo=None, hs='HS6', exports=True, year=2021):
+        '''
+        Grabs total value of shipments for the year.
+        Inputs:
+        geo: either 'state' or 'port' or None. None will grab nationwide values.
+        hs: The HS level to split on. Options are 'HS2', 'HS4', or 'HS6'
+        exports: True if exports, False if imports
+        year: the year to pull
+        '''
+>>>>>>> 56f861fafab6f8849dd1fa7959176f1102e98206
         url = self.url + \
-            'timeseries/intltrade/{}/{}hs?get={},{}_COMMODITY,{}_VAL_MO&YEAR={}&MONTH=12&COMM_LVL=HS6&key={}'.format(
+            'timeseries/intltrade/{}/{}hs?get={}{}_COMMODITY,{}_VAL_YR&YEAR={}&MONTH=12&COMM_LVL={}&key={}'.format(
                 'exports' if exports else 'imports',
-                'state' if geo == 'state' else 'port',
-                'STATE' if geo == 'state' else 'PORT',
+                geo if geo else '',
+                geo.upper() + "," if geo else "",
                 'E' if exports else 'I',
                 'ALL' if exports else 'GEN',
-                year, 
+                year,
+                hs,
                 CENSUS_API_KEY
             )
         print(url)
         return self.get_request(url)
 
 
-    def combine_geo(self, geo='state', years=(2020, 2021)):
+    def combine_geo(self, geo=None, hs='HS6', years=(2020, 2021)):
+        # Calls APIs and returns imports and exports joined and cleaned in a dataframe
         all_years = []
         for year in range(years[0], years[1] + 1):
-            imp = self.geo_lookup(geo=geo, exports=False, year=year)
-            exp = self.geo_lookup(geo=geo, year=year)
+            imp = self.geo_hs_lookup(geo=geo, hs=hs, exports=False, year=year)
+            exp = self.geo_hs_lookup(geo=geo, hs=hs, year=year)
             imp = pd.DataFrame(data=imp[1:], columns=imp[0]).drop(
                 columns=['YEAR', 'COMM_LVL', 'MONTH']
             )
+            imp = imp.loc[imp['GEN_VAL_YR'] != '0']
             exp = pd.DataFrame(data=exp[1:], columns=exp[0]).drop(
                 columns=['YEAR', 'COMM_LVL', 'MONTH']
             )
+            exp = exp.loc[exp['ALL_VAL_YR'] != '0']
             combined = imp.merge(
                 exp,
-                left_on=[geo.upper(), 'I_COMMODITY'],
-                right_on=[geo.upper(), 'E_COMMODITY'],
+                left_on=['I_COMMODITY', geo.upper()] if geo else 'I_COMMODITY',
+                right_on=['E_COMMODITY', geo.upper()] if geo else 'E_COMMODITY',
                 how='outer'
             )
-            combined = combined.loc[combined[geo.upper()] != "-"]
+            if geo:
+                combined = combined.loc[combined[geo.upper()] != "-"]
             combined['YEAR'] = year
             all_years.append(combined)
         all_years_combined = pd.concat(all_years)
-        all_years_combined['HS6'] = all_years_combined.apply(
+        all_years_combined[hs] = all_years_combined.apply(
             lambda x: x['I_COMMODITY'] if pd.notna(x['I_COMMODITY']) else x['E_COMMODITY'],
             axis=1
         )
         all_years_combined.drop(
             columns=['I_COMMODITY', 'E_COMMODITY'], inplace=True
         )
-        return all_years_combined.rename(
-            columns={'GEN_VAL_MO': 'import_value', 'ALL_VAL_MO': 'export_value'}
+        all_years_combined.rename(
+            columns={'GEN_VAL_YR': 'import_value', 'ALL_VAL_YR': 'export_value'},
+            inplace=True
         )
+        all_years_combined['import_value'] = all_years_combined['import_value'].apply(
+            lambda x: 0 if pd.isnull(x) else x
+        )
+        all_years_combined['export_value'] = all_years_combined['export_value'].apply(
+            lambda x: 0 if pd.isnull(x) else x
+        )
+        return all_years_combined
+
 
 
 class EconomicCensus(Api):

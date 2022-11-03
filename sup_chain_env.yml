@@ -13,4 +13,5 @@ dependencies:
   - pandas==1.4.3
   - openpyxl==3.0.10
   - sqlite==3.39.3
+  - requests==2.28.1
 prefix: C:\Anaconda3\envs\sup_chain_env
