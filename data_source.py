@@ -55,7 +55,7 @@ class IntlTrade(Api):
             data=[row for row in sched_d if row[0].isdigit()],
             columns=['port', 'port_name']
         )
-
+# geo can be 'state', 'port', or none... will add month as parameter 
     def geo_lookup(self, geo='state', exports=True, year=2022):
         url = self.url + \
             'timeseries/intltrade/{}/{}hs?get={},{}_COMMODITY,{}_VAL_MO&YEAR={}&MONTH=12&COMM_LVL=HS6&key={}'.format(
