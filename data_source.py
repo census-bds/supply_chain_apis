@@ -1,5 +1,6 @@
 import pandas as pd
 import requests
+from exceptions import RequestBlankException
 from config import CENSUS_API_KEY
 from urls import BASE_URL_CENSUS
 
@@ -21,7 +22,11 @@ class Api(DataSource):
         self.file_path = 'data/'
 
     def get_request(self, url):
-        return requests.get(url).json(strict=False)
+        r = requests.get(url)
+        if r.text:
+            return r.json(strict=False)
+        else:
+            raise RequestBlankException(url)
 
     def write_csv(self, output, file_name): 
         '''

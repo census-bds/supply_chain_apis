@@ -1,4 +1,4 @@
-- python==3.10.4
-- pandas==1.4.3
-- openpyxl==3.0.10
-- sqlite==3.39.3
+python==3.10.4
+pandas==1.4.3
+openpyxl==3.0.10
+sqlite==3.39.3
