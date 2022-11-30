@@ -62,7 +62,7 @@ class IntlTrade(Api):
             columns=['port', 'port_name']
         )
 
-    def geo_hs_lookup(self, geo=None, hs='HS6', exports=True, year=2021):
+    def geo_hs_lookup(self, geo=None, hs='HS6', exports=True, year=2021, datetype='year'):
         '''
         Grabs total value of shipments for the year.
         Inputs:
@@ -72,13 +72,15 @@ class IntlTrade(Api):
         year: the year to pull
         '''
         url = self.url + \
-            'timeseries/intltrade/{}/{}hs?get={}{}_COMMODITY,{}_VAL_YR&YEAR={}&MONTH=12&COMM_LVL={}&key={}'.format(
+            'timeseries/intltrade/{}/{}hs?get={}{}_COMMODITY,{}_VAL_{}&YEAR={}&MONTH={}&COMM_LVL={}&key={}'.format(
                 'exports' if exports else 'imports',
                 geo if geo else '',
                 geo.upper() + "," if geo else "",
                 'E' if exports else 'I',
                 'ALL' if exports else 'GEN',
+                'YR' if datetype == 'year' else 'MO',
                 year,
+                '12' if datetype == 'year' else '*',
                 hs,
                 CENSUS_API_KEY
             )
@@ -86,24 +88,36 @@ class IntlTrade(Api):
         return self.get_request(url)
 
 
-    def combine_geo(self, geo=None, hs='HS6', years=(2020, 2021)):
+    def combine_geo(self, geo=None, hs='HS6', years=(2020, 2021), datetype='year'):
         # Calls APIs and returns imports and exports joined and cleaned in a dataframe
         all_years = []
         for year in range(years[0], years[1] + 1):
-            imp = self.geo_hs_lookup(geo=geo, hs=hs, exports=False, year=year)
-            exp = self.geo_hs_lookup(geo=geo, hs=hs, year=year)
+            imp = self.geo_hs_lookup(
+                geo=geo, hs=hs, exports=False, year=year, datetype=datetype
+            )
+            exp = self.geo_hs_lookup(
+                geo=geo, hs=hs, year=year, datetype=datetype
+            )
+            val_suffix = 'YR' if datetype == 'year' else 'MO'
+            drop_cols = ['YEAR', 'COMM_LVL', 'MONTH'] \
+                if datetype == 'year' else ['YEAR', 'COMM_LVL']
             imp = pd.DataFrame(data=imp[1:], columns=imp[0]).drop(
-                columns=['YEAR', 'COMM_LVL', 'MONTH']
+                columns=drop_cols
             )
-            imp = imp.loc[imp['GEN_VAL_YR'] != '0']
+            imp = imp.loc[imp['GEN_VAL_{}'.format(val_suffix)] != '0']
             exp = pd.DataFrame(data=exp[1:], columns=exp[0]).drop(
-                columns=['YEAR', 'COMM_LVL', 'MONTH']
+                columns=drop_cols
             )
-            exp = exp.loc[exp['ALL_VAL_YR'] != '0']
+            exp = exp.loc[exp['ALL_VAL_{}'.format(val_suffix)] != '0']
+            add_merge_cols = []
+            if geo:
+                add_merge_cols.append(geo.upper())
+            if datetype == 'month':
+                add_merge_cols.append('MONTH')
             combined = imp.merge(
                 exp,
-                left_on=['I_COMMODITY', geo.upper()] if geo else 'I_COMMODITY',
-                right_on=['E_COMMODITY', geo.upper()] if geo else 'E_COMMODITY',
+                left_on=['I_COMMODITY'] + add_merge_cols,
+                right_on=['E_COMMODITY'] + add_merge_cols,
                 how='outer'
             )
             if geo:
@@ -119,7 +133,10 @@ class IntlTrade(Api):
             columns=['I_COMMODITY', 'E_COMMODITY'], inplace=True
         )
         all_years_combined.rename(
-            columns={'GEN_VAL_YR': 'import_value', 'ALL_VAL_YR': 'export_value'},
+            columns={
+                'GEN_VAL_{}'.format(val_suffix): 'import_value',
+                'ALL_VAL_{}'.format(val_suffix): 'export_value'
+            },
             inplace=True
         )
         all_years_combined['import_value'] = all_years_combined['import_value'].apply(
