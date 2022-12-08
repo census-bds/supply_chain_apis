@@ -34,7 +34,7 @@ class Api(DataSource):
         '''
         if year > datetime.date.today().year:
             raise FutureYearException(year)
-        if year / cadence != mod:
+        if year % cadence != mod:
             raise InvalidSurveyYear(self.name, year)
 
     def get_request(self, url):
