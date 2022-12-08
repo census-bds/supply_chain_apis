@@ -1,6 +1,7 @@
 import pandas as pd
 import requests
-from exceptions import RequestBlankException
+import datetime
+from exceptions import RequestBlankException, FutureYearException
 from urls import BASE_URL_CENSUS
 
 class DataSource():
@@ -19,6 +20,10 @@ class Api(DataSource):
         super().__init__()
         self.url = BASE_URL_CENSUS
         self.file_path = 'data/'
+
+    def check_year(self, year):
+        if year > datetime.date.today().year:
+            raise FutureYearException(year)
 
     def get_request(self, url):
         r = requests.get(url)

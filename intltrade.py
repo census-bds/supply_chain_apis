@@ -35,6 +35,7 @@ class IntlTrade(Api):
         exports: True if exports, False if imports
         year: the year to pull
         '''
+        self.check_year(year)
         url = self.url + \
             'timeseries/intltrade/{}/{}hs?get={}{}_COMMODITY,{}_VAL_{}&YEAR={}&MONTH={}&COMM_LVL={}&key={}'.format(
                 'exports' if exports else 'imports',

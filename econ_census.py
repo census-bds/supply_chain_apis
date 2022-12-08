@@ -19,7 +19,8 @@ class EconomicCensus(Api):
         return [list(df.columns)] + df.values.tolist()
 
 
-    def state_naics_lookup(self):
+    def state_naics_lookup(self, geo='state', year=2017, datetype='year'):
+        self.check_year(year)
         url = self.url + "2017/ecnbasic?get=GEO_ID,STATE,FIRM,FIRM_F,RCPTOT,RCPTOT_F,ESTAB,ESTAB_F&for=state:*&NAICS2017=*&key={}".format(
             CENSUS_API_KEY
         )
@@ -32,3 +33,6 @@ class EconomicCensus(Api):
         )
         print(url)
         return self.remove_flag(self.get_request(url), flag_types=["D", "X"])
+
+    def napcs_lookup():
+        return
