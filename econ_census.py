@@ -6,6 +6,7 @@ from config import CENSUS_API_KEY
 class EconomicCensus(Api):
     def __init__(self):
         super().__init__()
+        self.name = "Economic Census"
         self.file_path = 'data/Econ Census/'
 
     def remove_flag(self, data, flag_types):
@@ -20,7 +21,7 @@ class EconomicCensus(Api):
 
 
     def state_naics_lookup(self, geo='state', year=2017, datetype='year'):
-        self.check_year(year)
+        self.check_year(year, 5, 2)
         url = self.url + "2017/ecnbasic?get=GEO_ID,STATE,FIRM,FIRM_F,RCPTOT,RCPTOT_F,ESTAB,ESTAB_F&for=state:*&NAICS2017=*&key={}".format(
             CENSUS_API_KEY
         )
