@@ -1,8 +1,12 @@
 import pandas as pd
 import requests
 import datetime
-from exceptions import RequestBlankException, FutureYearException, InvalidSurveyYear
+import yaml
+from exceptions import RequestBlankException, FutureYearException, InvalidSurveyYear, UnknownDataSource
 from urls import BASE_URL_CENSUS
+
+with open('api_endpoints.yml', 'r') as file:
+    API_ENDPOINTS = yaml.safe_load(file)
 
 class DataSource():
     def __init__(self):
@@ -22,6 +26,23 @@ class Api(DataSource):
         super().__init__()
         self.url = BASE_URL_CENSUS
         self.file_path = 'data/'
+        self.available_vars = self.populate_vars()
+        self.geographies = {}
+    
+    def populate_vars(self):
+        def _lookup_vars(endpoint):
+            variables = requests.get(
+                BASE_URL_CENSUS + endpoint + "variables.json"
+            ).json()
+            return [var for var in variables['variables'].keys() if var == var.upper()] #Kind of hacky. There are some non-variables that are lowercase so we use that to get rid of them.
+
+        endpoints = API_ENDPOINTS.get(self.name)
+        if not endpoints:
+            raise UnknownDataSource(self.name)
+        available_vars = {}
+        for endpoint in endpoints:
+            available_vars[endpoint] = _lookup_vars(endpoint)
+        return available_vars
 
     def check_year(self, year, cadence, mod):
         '''
@@ -36,6 +57,14 @@ class Api(DataSource):
             raise FutureYearException(year)
         if year % cadence != mod:
             raise InvalidSurveyYear(self.name, year)
+
+    # def check_vars(self, endpoint):
+    #     if not self.availale_vars.get(endpoint):
+    #         self.availale_vars[endpoint] = [
+    #             col for col in self.get_request(
+    #                 'https://api.census.gov/data/{}/variables.json'.format(endpoint)
+    #             )['variables'].keys() if not col in ['for', 'in', 'ucgid']
+    #         ]
 
     def get_request(self, url):
         r = requests.get(url)

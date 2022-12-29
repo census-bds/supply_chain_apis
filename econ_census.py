@@ -1,5 +1,4 @@
 import pandas as pd
-
 from data_source import Api
 from config import CENSUS_API_KEY
 

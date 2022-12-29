@@ -13,3 +13,9 @@ class InvalidSurveyYear(Exception):
         super().__init__("{} is not available in year {}.".format(
             name, year
         ))
+
+class UnknownDataSource(Exception):
+    def __init__(self, name):
+        super().__init__("{} has not been built into this wrapper yet or is an unknown data source".format(
+            name
+        ))
