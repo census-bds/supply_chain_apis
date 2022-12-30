@@ -1,14 +1,12 @@
 import pandas as pd
-from data_source import Api
+import data_source
 from config import CENSUS_API_KEY
 
-class EconomicCensus(Api):
+class EconomicCensus(data_source.Api):
     def __init__(self):
         super().__init__()
-        self.name = "Economic Census"
-        self.file_path = 'data/Econ Census/'
-        self.availale_vars = {}
-        self.geographies = {}
+        self.name = "Economic Census"        
+        self.available_vars = self.populate_vars()
 
     def remove_flag(self, data, flag_types):
         df = pd.DataFrame(data[1:], columns=data[0])
@@ -27,12 +25,8 @@ class EcnBasic(EconomicCensus):
     
     def ecnbasic_lookup(self, geo=None, year=2017):
         self.check_year(year, 5, 2)
-        if not self.availale_vars.get(year):
-            self.availale_vars[year] = [
-                col for col in self.get_request(
-                    'https://api.census.gov/data/{}/ecnbasic/variables.json'.format(year)
-                )['variables'].keys() if not col in ['for', 'in', 'ucgid']
-            ]
+        self.check_vars(year)
+        
         variables = ['FIRM', 'FIRM_F', 'RCPTOT', 'RCPTOT_F', 'ESTAB', 'ESTAB_F']
         variables = [
             col for col in variables if col in \
