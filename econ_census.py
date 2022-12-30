@@ -1,6 +1,7 @@
 import pandas as pd
 import data_source
 from config import CENSUS_API_KEY
+import logging
 
 class EconomicCensus(data_source.Api):
     def __init__(self):
@@ -17,6 +18,29 @@ class EconomicCensus(data_source.Api):
             )
         df.drop(columns=flag_cols, inplace=True)
         return [list(df.columns)] + df.values.tolist()
+
+    def lookup(self, endpoint, geo, fields=[]):
+        available_fields = self.available_vars.get(endpoint)
+        assert available_fields, endpoint + " is not available."
+        fields_to_use = []
+        if fields:
+            for field in fields:
+                if field in available_fields:
+                    fields_to_use.append(field)
+                else:
+                    logging.warning(
+                        "{} is not an available field for endpoint {}".format(
+                            field, endpoint
+                        )
+                    )
+                     
+        url = self.url + endpoint + "?get=GEO_ID,{}&for={}&NAICS2017=*&key={}".format(
+            ",".join(available_fields),
+            geo,
+            CENSUS_API_KEY
+        )
+        print(url)
+        return self.remove_flag(self.get_request(url), flag_types=["D", "X"])
 
 
 class EcnBasic(EconomicCensus):
