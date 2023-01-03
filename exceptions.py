@@ -19,3 +19,7 @@ class UnknownDataSource(Exception):
         super().__init__("{} has not been built into this wrapper yet or is an unknown data source".format(
             name
         ))
+
+class TooManyFields(Exception):
+    def __init__(self):
+        super().__init__("Number of fields exceeds API limit.")

@@ -1,6 +1,7 @@
 import pandas as pd
 import data_source
 from config import CENSUS_API_KEY
+from exceptions import TooManyFields
 import logging
 
 class EconomicCensus(data_source.Api):
@@ -17,9 +18,20 @@ class EconomicCensus(data_source.Api):
                 lambda x: None if x[col] in flag_types else x[col[:-2]], axis=1
             )
         df.drop(columns=flag_cols, inplace=True)
-        return [list(df.columns)] + df.values.tolist()
+        return df
+
+    #TO DO: AUTOMATICALLY CHECK FIELDS FOR FLAGS, MAKE SURE THE FLAG IS ALSO QUERIED
 
     def lookup(self, endpoint, geo, fields=[]):
+        def _lookup_subfields(sub_fields):
+            url = self.url + endpoint + "?get=GEO_ID,{}&for={}&NAICS2017=*&key={}".format(
+                ",".join(sub_fields),
+                geo,
+                CENSUS_API_KEY
+            )
+            print(url)
+            return self.remove_flag(self.get_request(url), flag_types=["D", "X"])
+        #TO DO: split the lookup if more than 50 fields requested
         available_fields = self.available_vars.get(endpoint)
         assert available_fields, endpoint + " is not available."
         fields_to_use = []
@@ -33,14 +45,13 @@ class EconomicCensus(data_source.Api):
                             field, endpoint
                         )
                     )
-                     
-        url = self.url + endpoint + "?get=GEO_ID,{}&for={}&NAICS2017=*&key={}".format(
-            ",".join(available_fields),
-            geo,
-            CENSUS_API_KEY
-        )
-        print(url)
-        return self.remove_flag(self.get_request(url), flag_types=["D", "X"])
+        else:
+            fields_to_use = available_fields
+        if len(fields_to_use) > 49:
+            raise TooManyFields
+        else:
+            return _lookup_subfields(fields_to_use)
+
 
 
 class EcnBasic(EconomicCensus):
