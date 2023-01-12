@@ -1,0 +1,7 @@
+'International Trade': [
+    'timeseries/intltrade/exports/hs',
+    'timeseries/intltrade/imports/hs',
+    'timeseries/intltrade/imports/statehs',
+    'timeseries/intltrade/imports/porths'
+  ]
+'Economic Census': ['2017/ecnbasic', '2017/ecnsize']

@@ -1,4 +1,6 @@
-# suppy-chain
+# suppy-chain-apis
+
+This repository creates a wrapper for querying and cleaning data from Census APIs which are relevant to the supply chain. The available data sources are listed below. It is specifically created to migrate data into the Supply Chain Information Portal (SCIP) database.
 
 # Environment setup
 Packages use are documented in sup_chain_env.yml. To create the conda environment, run `conda env create -f sup_chain_env.yml`.
