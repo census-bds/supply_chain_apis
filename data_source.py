@@ -29,12 +29,18 @@ class Api(DataSource):
         self.available_vars = {}
         self.geographies = {}
     
-    def populate_vars(self):
+    def populate_vars(self, fields_needed):
         def _lookup_vars(endpoint):
             variables = requests.get(
                 BASE_URL_CENSUS + endpoint + "/variables.json"
             ).json()
-            return [var for var in variables['variables'].keys() if var == var.upper()] #Kind of hacky. There are some non-variables that are lowercase so we use that to get rid of them.
+            var_dict = {}
+            for variable, variable_dict in variables['variables'].items():
+                if variable == variable.upper():
+                    var_dict[variable] = {}
+                    for field in fields_needed:
+                        var_dict[variable][field] = variable_dict.get(field)
+            return var_dict #Kind of hacky. There are some non-variables that are lowercase so we use that to get rid of them.
         endpoints = API_ENDPOINTS.get(self.name)
         if not endpoints:
             raise UnknownDataSource(self.name)

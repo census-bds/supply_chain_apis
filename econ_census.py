@@ -8,7 +8,7 @@ class EconomicCensus(data_source.Api):
     def __init__(self):
         super().__init__()
         self.name = "Economic Census"        
-        self.available_vars = self.populate_vars()
+        self.available_vars = self.populate_vars(['label', 'attributes'])
 
     def remove_flag(self, data, flag_types):
         df = pd.DataFrame(data[1:], columns=data[0])
@@ -21,10 +21,11 @@ class EconomicCensus(data_source.Api):
         return df
 
     #TO DO: AUTOMATICALLY CHECK FIELDS FOR FLAGS, MAKE SURE THE FLAG IS ALSO QUERIED
+    #TO DO: HANDLE FOR CLAUSE (GEOGRAPHICAL) RESTRICTIONS
 
     def lookup(self, endpoint, geo, fields=[]):
         def _lookup_subfields(sub_fields):
-            url = self.url + endpoint + "?get=GEO_ID,{}&for={}&NAICS2017=*&key={}".format(
+            url = self.url + endpoint + "?get=GEO_ID,{}&for={}:*&NAICS2017=*&key={}".format(
                 ",".join(sub_fields),
                 geo,
                 CENSUS_API_KEY
@@ -32,21 +33,25 @@ class EconomicCensus(data_source.Api):
             print(url)
             return self.remove_flag(self.get_request(url), flag_types=["D", "X"])
         #TO DO: split the lookup if more than 50 fields requested
-        available_fields = self.available_vars.get(endpoint)
+        available_fields = list(self.available_vars.get(endpoint).keys())
         assert available_fields, endpoint + " is not available."
+        if not fields:
+            fields = available_fields
         fields_to_use = []
-        if fields:
-            for field in fields:
-                if field in available_fields:
-                    fields_to_use.append(field)
-                else:
-                    logging.warning(
-                        "{} is not an available field for endpoint {}".format(
-                            field, endpoint
-                        )
+        for field in fields:
+            if field in available_fields:
+                fields_to_use.append(field)
+                attributes = self.available_vars.get(
+                    endpoint
+                )[field]['attributes']
+                if attributes:
+                    fields_to_use.append(attributes)
+            else:
+                logging.warning(
+                    "{} is not an available field for endpoint {}".format(
+                        field, endpoint
                     )
-        else:
-            fields_to_use = available_fields
+                )
         if len(fields_to_use) > 49:
             raise TooManyFields
         else:
