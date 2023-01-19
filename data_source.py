@@ -4,8 +4,12 @@ import datetime
 import yaml
 from exceptions import RequestBlankException, FutureYearException, InvalidSurveyYear, UnknownDataSource
 from urls import BASE_URL_CENSUS
-
-with open('api_endpoints.yml', 'r') as file:
+import os
+# 
+settings_dir = os.path.dirname(__file__)
+PROJECT_ROOT = os.path.abspath(os.path.dirname(settings_dir))
+API_ENDPOINTS_YML = os.path.join(PROJECT_ROOT, 'supply_chain_apis/api_endpoints.yml')
+with open(API_ENDPOINTS_YML, 'r') as file:
     API_ENDPOINTS = yaml.safe_load(file)
 
 class DataSource():
