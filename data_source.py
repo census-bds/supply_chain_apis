@@ -14,6 +14,10 @@ class DataSource():
         return
     pass
 
+class Ftp(DataSource):
+    def __init__(self): 
+        self.url = FTP_URL_CENSUS    
+
 class Api(DataSource):
     def __init__(self):
         super().__init__()

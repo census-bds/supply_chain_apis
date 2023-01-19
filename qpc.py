@@ -1,6 +1,6 @@
 import pandas as pd
 
-from data_source import Api
+from data_source import Ftp
 from config import CENSUS_API_KEY
 from bs4 import BeautifulSoup as bs
 import pandas as pd 
@@ -9,7 +9,7 @@ import openpyxl
 import requests
 import os 
 
-class QPC(Api):
+class QPC(Ftp):
     def __init__(self):
         super().__init__()
         self.file_path = 'data/QPC/'
@@ -17,7 +17,7 @@ class QPC(Api):
     def generate_urls(self, years=[2022, 2021]): 
         urls = []
         for year in years: 
-            url = f"https://www2.census.gov/programs-surveys/qpc/tables/{year}/"
+            url = f"{self.url}qpc/tables/{year}/"
             tables = requests.get(url)
             soup = bs(tables.content)
 
@@ -30,6 +30,8 @@ class QPC(Api):
     
     def clean_qpc_file(self, urls): 
         dfs = []
+        # look into openpxyl's ability to merge multiple row labels of a column
+        # need to name unnamed columns (existing glossary for value but not column)
         new_unnamed = "Industry Coverage LT 50p"
         unnamed = {
             "Unnamed: 2": new_unnamed, 
