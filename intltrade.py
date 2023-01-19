@@ -7,7 +7,9 @@ from config import CENSUS_API_KEY
 class IntlTrade(Api):
     def __init__(self):
         super().__init__()
+        self.name = "International Trade"
         self.file_path = 'data/Intl Trade/'
+        self.available_vars = self.populate_vars(['label'])
 
     #TO DO: add up the weights by all the different mode of transit types
 
@@ -35,6 +37,7 @@ class IntlTrade(Api):
         exports: True if exports, False if imports
         year: the year to pull
         '''
+        self.check_year(year, 1, 0)
         url = self.url + \
             'timeseries/intltrade/{}/{}hs?get={}{}_COMMODITY,{}_VAL_{}&YEAR={}&MONTH={}&COMM_LVL={}&key={}'.format(
                 'exports' if exports else 'imports',
