@@ -31,18 +31,30 @@ class Api(DataSource):
         self.available_vars = {}
         self.geographies = {}
         self.attributes = True
+        self.api_params = {
+            'get': [],
+            'key': [CENSUS_API_KEY]
+        }
 
-    def lookup_subfields(self, geo, endpoint, sub_fields, geo_id=False):
-        url = self.url + endpoint + "?get={}{}&for={}:*&NAICS2017=*&key={}".format(
-            "GEO_ID," if geo_id else '',
-            ",".join(sub_fields),
-            geo,
-            CENSUS_API_KEY
-        )
+    def lookup_subfields(self, endpoint, geo_id=False):
+        if geo_id:
+            self.api_params['get'].append(geo_id)
+        url = self.url + endpoint + "?"
+        param_strings = []
+        for param, values in self.api_params.items():
+            param_strings.append(param + "=" + ",".join(values))
+        url += "&".join(param_strings)
+        
+        # "?get={}{}&for={}:*&NAICS2017=*&key={}".format(
+        #     "GEO_ID," if geo_id else '',
+        #     ",".join(sub_fields),
+        #     geo,
+        #     CENSUS_API_KEY
+        # )
         print(url)
         return self.get_request(url)
 
-    def lookup(self, endpoint, geo, fields=[]):
+    def lookup(self, endpoint, fields=[]):
         #TO DO: split the lookup if more than 50 fields requested
         available_fields = list(self.available_vars.get(endpoint).keys())
         assert available_fields, endpoint + " is not available."
@@ -67,7 +79,8 @@ class Api(DataSource):
         if len(fields_to_use) > 49:
             raise TooManyFields
         else:
-            return self.lookup_subfields(geo, endpoint, fields_to_use)
+            self.api_params['get'] = fields_to_use
+            return self.lookup_subfields(endpoint)
     
     def populate_vars(self, fields_needed):
         def _lookup_vars(endpoint):
