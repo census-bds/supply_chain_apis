@@ -6,8 +6,12 @@ import logging
 from exceptions import TooManyFields, RequestBlankException, FutureYearException, InvalidSurveyYear, UnknownDataSource
 from urls import BASE_URL_CENSUS
 from config import CENSUS_API_KEY
-
-with open('api_endpoints.yml', 'r') as file:
+import os
+# 
+settings_dir = os.path.dirname(__file__)
+PROJECT_ROOT = os.path.abspath(os.path.dirname(settings_dir))
+API_ENDPOINTS_YML = os.path.join(PROJECT_ROOT, 'supply_chain_apis/api_endpoints.yml')
+with open(API_ENDPOINTS_YML, 'r') as file:
     API_ENDPOINTS = yaml.safe_load(file)
 
 class DataSource():
@@ -22,6 +26,11 @@ class DataSource():
         # Harmonizes product codes to the most recent HS
         return
     pass
+
+class Ftp(DataSource):
+    def __init__(self): 
+        FTP_URL_CENSUS = 'FTP'
+        self.url = API_ENDPOINTS.get(FTP_URL_CENSUS)
 
 class Api(DataSource):
     def __init__(self):
