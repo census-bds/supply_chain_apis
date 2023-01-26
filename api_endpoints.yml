@@ -5,3 +5,4 @@
     'timeseries/intltrade/imports/porths'
   ]
 'Economic Census': ['2017/ecnbasic', '2017/ecnsize']
+'FTP': ['https://www2.census.gov/programs-surveys/']

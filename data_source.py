@@ -27,7 +27,8 @@ class DataSource():
 
 class Ftp(DataSource):
     def __init__(self): 
-        self.url = FTP_URL_CENSUS    
+        FTP_URL_CENSUS = 'FTP'
+        self.url = API_ENDPOINTS.get(FTP_URL_CENSUS)
 
 class Api(DataSource):
     def __init__(self):

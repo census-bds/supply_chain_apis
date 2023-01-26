@@ -17,8 +17,10 @@ class QPC(Ftp):
     def generate_urls(self, years=[2022, 2021]): 
         urls = []
         for year in years: 
-            url = f"{self.url}qpc/tables/{year}/"
+            url = f"{self.url[0]}qpc/tables/{year}/"
+            print(url)
             tables = requests.get(url)
+
             soup = bs(tables.content)
 
             href_soup = soup.find_all('a', href=True)
@@ -26,8 +28,30 @@ class QPC(Ftp):
                 if ".xlsx" in a['href']: 
                     extracted_url = url + a['href']
                     urls.append((a['href'], extracted_url))
+        print("urls!!: ", urls)
         return urls
-    
+    def clean_excel_file(self, xl, sheetname): 
+        print(xl)
+        print(sheetname)
+        # print(xl[sheetname])
+        # ws = xl[sheetname]
+        # for merge in list(ws.merged_cells):
+        #     ws.unmerge_cells(range_string=str(merge))
+
+
+
+    # def clean_dataframe(self, xl, sheetname):
+    #     df = pd.read_excel(
+    #         xl, 
+    #         name, 
+    #         header = header_sheet_configs[name][0], 
+    #         usecols = header_sheet_configs[name][1], 
+    #         true_values = ['c']
+    #     ) 
+    #     df = df.rename(columns = unnamed)
+    #     df[new_unnamed] = df[new_unnamed].fillna(False)
+    #     df = df.replace('c', True)
+                    
     def clean_qpc_file(self, urls): 
         dfs = []
         # look into openpxyl's ability to merge multiple row labels of a column
@@ -43,26 +67,18 @@ class QPC(Ftp):
             "EMERGENCY Utilization Rates": (4, "A:H")
         }
         # enumerate allows us to look at tuples 
+
         for (label, url) in urls: 
             content = requests.get(url).content
             print("url: ", url)
             xl = pd.ExcelFile(content, engine = "openpyxl")
-
+            print(type(xl))
             for name in xl.sheet_names: 
-                if name in header_sheet_configs: 
-                    df = pd.read_excel(
-                        xl, 
-                        name, 
-                        header = header_sheet_configs[name][0], 
-                        usecols = header_sheet_configs[name][1], 
-                        true_values = ['c']
-                    ) 
-                    df = df.rename(columns = unnamed)
-                    df[new_unnamed] = df[new_unnamed].fillna(False)
-                    df = df.replace('c', True)
-                    
-                    dfs.append((label, df))
-                    self.download_qpc_file(name, label, df)
+                self.clean_excel_file(xl, name)
+                # if name in header_sheet_configs: 
+                    # self.clean_dataframe(xl, name)
+                    # dfs.append((label, df))
+                    # self.download_qpc_file(name, label, df)
         return dfs
 
     def download_qpc_file(self, sheet, label, df): 
