@@ -7,9 +7,11 @@ from config import CENSUS_API_KEY
 class IntlTrade(Api):
     def __init__(self):
         super().__init__()
+        self.api_params['time'] = ['2021-12']
         self.name = "International Trade"
         self.file_path = 'data/Intl Trade/'
         self.available_vars = self.populate_vars(['label'])
+        self.attributes = False
 
     #TO DO: add up the weights by all the different mode of transit types
 
