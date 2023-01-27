@@ -1,8 +1,12 @@
-'International Trade': [
-    'timeseries/intltrade/exports/hs',
-    'timeseries/intltrade/imports/hs',
-    'timeseries/intltrade/imports/statehs',
-    'timeseries/intltrade/imports/porths'
-  ]
-'Economic Census': ['2017/ecnbasic', '2017/ecnsize']
-'FTP': ['https://www2.census.gov/programs-surveys/']
+International Trade: 
+  timeseries/intltrade/exports/hs:
+  timeseries/intltrade/imports/hs:
+  timeseries/intltrade/imports/statehs: 
+    get: ['GEN_VAL_YR', 'I_COMMODITY']
+    time: ['2021-12']
+  timeseries/intltrade/imports/porths:
+Economic Census: 
+  2017/ecnbasic:
+    get: []
+  2017/ecnsize:
+    get: []
