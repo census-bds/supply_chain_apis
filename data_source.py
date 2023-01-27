@@ -6,12 +6,8 @@ import logging
 from exceptions import TooManyFields, RequestBlankException, FutureYearException, InvalidSurveyYear, UnknownDataSource
 from urls import BASE_URL_CENSUS
 from config import CENSUS_API_KEY
-import os
-# 
-settings_dir = os.path.dirname(__file__)
-PROJECT_ROOT = os.path.abspath(os.path.dirname(settings_dir))
-API_ENDPOINTS_YML = os.path.join(PROJECT_ROOT, 'supply_chain_apis/api_endpoints.yml')
-with open(API_ENDPOINTS_YML, 'r') as file:
+
+with open('api_endpoints.yml', 'r') as file:
     API_ENDPOINTS = yaml.safe_load(file)
 
 class DataSource():
@@ -26,11 +22,6 @@ class DataSource():
         # Harmonizes product codes to the most recent HS
         return
     pass
-
-class Ftp(DataSource):
-    def __init__(self): 
-        FTP_URL_CENSUS = 'FTP'
-        self.url = API_ENDPOINTS.get(FTP_URL_CENSUS)
 
 class Api(DataSource):
     def __init__(self):
@@ -157,8 +148,7 @@ class Api(DataSource):
 
 class Survey(Api):
     def __init__(self):
-        super().__init__()       
-        self.available_vars = self.populate_vars(['label', 'attributes'])
+        super().__init__()
 
     def remove_flag(self, df, flag_types):
         flag_cols = [col for col in df if col[-2:] == "_F"]
@@ -169,9 +159,9 @@ class Survey(Api):
         df.drop(columns=flag_cols, inplace=True)
         return df
 
-    def lookup_subfields(self, geo, endpoint, sub_fields, geo_id=True):
+    def lookup_subfields(self, endpoint, geo_id=True):
         return self.remove_flag(
-            super.lookup_subfields(geo, endpoint, sub_fields),
+            super().lookup_subfields(endpoint),
             ["D", "X"]
         )
 
