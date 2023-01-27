@@ -36,6 +36,9 @@ class Api(DataSource):
             'key': [CENSUS_API_KEY]
         }
 
+    def lookup_all(self):
+        pass
+
     def lookup_subfields(self, endpoint, geo_id=False):
         if geo_id:
             self.api_params['get'].append(geo_id)
