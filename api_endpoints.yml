@@ -2,9 +2,17 @@ International Trade:
   timeseries/intltrade/exports/hs:
   timeseries/intltrade/imports/hs:
   timeseries/intltrade/imports/statehs: 
-    get: ['GEN_VAL_YR', 'I_COMMODITY']
+    get: ['STATE', 'GEN_VAL_YR', 'I_COMMODITY']
+    time: ['2021-12']
+  timeseries/intltrade/exports/statehs: 
+    get: ['STATE', 'ALL_VAL_YR', 'E_COMMODITY']
     time: ['2021-12']
   timeseries/intltrade/imports/porths:
+    get: ['PORT', 'GEN_VAL_YR', 'I_COMMODITY']
+    time: ['2021-12']
+  timeseries/intltrade/exports/porths:
+    get: ['PORT', 'ALL_VAL_YR', 'E_COMMODITY']
+    time: ['2021-12']
 Economic Census: 
   2017/ecnbasic:
     get: []

@@ -1,13 +1,12 @@
 import requests
 import pandas as pd
-from data_source import Api
+import data_source
 from exceptions import RequestBlankException
 from config import CENSUS_API_KEY
 
-class IntlTrade(Api):
+class IntlTrade(data_source.Api):
     def __init__(self):
         super().__init__()
-        self.api_params['time'] = ['2021-12']
         self.name = "International Trade"
         self.file_path = 'data/Intl Trade/'
         self.available_vars = self.populate_vars(['label'])

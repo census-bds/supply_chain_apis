@@ -31,34 +31,29 @@ class Api(DataSource):
         self.available_vars = {}
         self.geographies = {}
         self.attributes = True
-        self.api_params = {
-            'get': [],
-            'key': [CENSUS_API_KEY]
-        }
 
     def lookup_all(self):
-        pass
+        endpoint_dict = API_ENDPOINTS[self.name]
+        dfs = []
+        for endpoint, params in endpoint_dict.items():
+            if params:
+                dfs.append(self.lookup(endpoint, params))
+        return dfs
 
-    def lookup_subfields(self, endpoint, geo_id=False):
-        if geo_id:
-            self.api_params['get'].append(geo_id)
+    def lookup_subfields(self, endpoint, params):
         url = self.url + endpoint + "?"
         param_strings = []
-        for param, values in self.api_params.items():
+        for param, values in params.items():
             param_strings.append(param + "=" + ",".join(values))
         url += "&".join(param_strings)
-        
-        # "?get={}{}&for={}:*&NAICS2017=*&key={}".format(
-        #     "GEO_ID," if geo_id else '',
-        #     ",".join(sub_fields),
-        #     geo,
-        #     CENSUS_API_KEY
-        # )
         print(url)
         return self.get_request(url)
 
-    def lookup(self, endpoint, fields=[]):
+    def lookup(self, endpoint, params):
         #TO DO: split the lookup if more than 50 fields requested
+        fields = params['get']
+        if not params.get('key'):
+            params['key'] = [CENSUS_API_KEY]
         available_fields = list(self.available_vars.get(endpoint).keys())
         assert available_fields, endpoint + " is not available."
         if not fields:
@@ -82,8 +77,8 @@ class Api(DataSource):
         if len(fields_to_use) > 49:
             raise TooManyFields
         else:
-            self.api_params['get'] = fields_to_use
-            return self.lookup_subfields(endpoint)
+            params['get'] = fields_to_use
+            return self.lookup_subfields(endpoint, params)
     
     def populate_vars(self, fields_needed):
         def _lookup_vars(endpoint):
