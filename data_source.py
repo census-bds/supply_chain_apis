@@ -157,9 +157,9 @@ class Survey(Api):
         df.drop(columns=flag_cols, inplace=True)
         return df
 
-    def lookup_subfields(self, endpoint, geo_id=True):
+    def lookup_subfields(self, endpoint, params):
         return self.remove_flag(
-            super().lookup_subfields(endpoint),
+            super().lookup_subfields(endpoint, params),
             ["D", "X"]
         )
 
