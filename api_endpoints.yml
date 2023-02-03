@@ -3,7 +3,7 @@ International Trade:
     get: ['ALL_VAL_YR', 'COMM_LVL']
     time: ['2021-12']
   timeseries/intltrade/imports/hs:
-    get: ['ALL_VAL_YR', 'COMM_LVL']
+    get: ['GEN_VAL_YR', 'COMM_LVL']
     time: ['2021-12']
   timeseries/intltrade/imports/statehs: 
     get: ['STATE', 'GEN_VAL_YR', 'I_COMMODITY', 'COMM_LVL']
