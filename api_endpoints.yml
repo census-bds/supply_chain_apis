@@ -1,20 +1,25 @@
 International Trade: 
   timeseries/intltrade/exports/hs:
+    get: ['ALL_VAL_YR', 'COMM_LVL']
+    time: ['2021-12']
   timeseries/intltrade/imports/hs:
+    get: ['ALL_VAL_YR', 'COMM_LVL']
+    time: ['2021-12']
   timeseries/intltrade/imports/statehs: 
-    get: ['STATE', 'GEN_VAL_YR', 'I_COMMODITY']
+    get: ['STATE', 'GEN_VAL_YR', 'I_COMMODITY', 'COMM_LVL']
     time: ['2021-12']
   timeseries/intltrade/exports/statehs: 
-    get: ['STATE', 'ALL_VAL_YR', 'E_COMMODITY']
+    get: ['STATE', 'ALL_VAL_YR', 'E_COMMODITY', 'COMM_LVL']
     time: ['2021-12']
   timeseries/intltrade/imports/porths:
-    get: ['PORT', 'GEN_VAL_YR', 'I_COMMODITY']
+    get: ['PORT', 'GEN_VAL_YR', 'I_COMMODITY', 'COMM_LVL']
     time: ['2021-12']
   timeseries/intltrade/exports/porths:
-    get: ['PORT', 'ALL_VAL_YR', 'E_COMMODITY']
+    get: ['PORT', 'ALL_VAL_YR', 'E_COMMODITY', 'COMM_LVL']
     time: ['2021-12']
 Economic Census: 
   2017/ecnbasic:
-    get: []
+    get: ['GEO_ID', 'YEAR', 'FIRM']
+    for: ['state:*']
   2017/ecnsize:
-    get: []
+    get: ['GEO_ID', 'HHI', 'RCPTOT']

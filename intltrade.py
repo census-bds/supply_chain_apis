@@ -2,7 +2,7 @@ import requests
 import pandas as pd
 import data_source
 from exceptions import RequestBlankException
-from config import CENSUS_API_KEY
+from config import CENSUS_API_KEY, STATE_GEOID_CROSSWALK
 
 class IntlTrade(data_source.Api):
     def __init__(self):
@@ -11,6 +11,7 @@ class IntlTrade(data_source.Api):
         self.file_path = 'data/Intl Trade/'
         self.available_vars = self.populate_vars(['label'])
         self.attributes = False
+        self.state_geoid_xwalk = None
 
     #TO DO: add up the weights by all the different mode of transit types
 
@@ -28,6 +29,21 @@ class IntlTrade(data_source.Api):
             data=[row for row in sched_d if row[0].isdigit()],
             columns=['port', 'port_name']
         )
+    
+    def lookup(self, endpoint, params):
+        df = super().lookup(endpoint, params)
+        return self.add_geo_state(df)
+
+    def add_geo_state(self, df):
+        if not isinstance(self.state_geoid_xwalk, pd.DataFrame):
+            self.state_geoid_xwalk = pd.read_csv(STATE_GEOID_CROSSWALK)
+        if 'STATE' in df.columns:
+            df = df.merge(
+                self.state_geoid_xwalk[['GEO_ID', 'STATE']], on='STATE'
+            )
+            df.loc[df['STATE'] == "-", "GEO_ID"] = "0100000US"
+        return df
+
 
     def geo_hs_lookup(self, geo=None, hs='HS6', exports=True, year=2021, datetype='year'):
         '''
