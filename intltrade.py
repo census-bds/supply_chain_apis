@@ -50,8 +50,10 @@ class IntlTrade(data_source.Api):
         if geo_col:
             df.loc[df[geo_col] == "-", "GEO_ID"] = "0100000US"
             df.drop(columns=[geo_col], inplace=True)
+            df['GEO_LVL'] = geo_col
         else:
             df['GEO_ID'] = "0100000US"
+            df['GEO_LVL'] = None
         return df
     
     def rename_hs_columns(self, dfs):
