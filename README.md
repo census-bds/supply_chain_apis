@@ -6,7 +6,8 @@ This repository creates a wrapper for querying and cleaning data from Census API
 Packages use are documented in sup_chain_env.yml. To create the conda environment, run `conda env create -f sup_chain_env.yml`.
 
 # Getting started
-Fill out api_endpoints.yml according to the example. There should be data sources at the highest level, each data source's endpoints within that, and then values for each URL parameter at the most nested level.
+1. Fill out api_endpoints.yml according to the example. There should be data sources at the highest level, each data source's endpoints within that, and then values for each URL parameter at the most nested level.
+2. Fill out config.py according to the template with a Census API key and the path to a state to GEO_ID crosswalk. To work with SCIP, all data will need a GEO_ID field. We place a crosswalk here in order to add GEO_IDs to endpoints that do not include GEO_ID, namely International Trade.
 
 # Examples
 ```
