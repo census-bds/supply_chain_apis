@@ -6,23 +6,12 @@ This repository creates a wrapper for querying and cleaning data from Census API
 Packages use are documented in sup_chain_env.yml. To create the conda environment, run `conda env create -f sup_chain_env.yml`.
 
 # Getting started
-Fill out api_endpoints.yml.
+Fill out api_endpoints.yml according to the example. There should be data sources at the highest level, each data source's endpoints within that, and then values for each URL parameter at the most nested level.
 
-# Data sources
-
-## Annual Survey of Manufacturers 
-https://www.census.gov/data/developers/data-sets/Annual-Survey-of-Manufactures.html
-
-## International Trade 
-https://www.census.gov/data/developers/data-sets/international-trade.html
-Requires a crosswalk which converts state abbreviations to their GEO_IDs in order to run the add_geo function. The path to the crosswalk should be saved in config.py in the variable STATE_GEOID_CROSSWALK. Current crosswalk was made manually by pulling GEOIDs and state names from econ census and then adding state abbreviations.
-
-## Economic Census 
-https://www.census.gov/data/developers/data-sets/economic-census.html
-
-## CFS 
-https://www.census.gov/data/developers/data-sets/cfs.html
-
-## NAICS Concordance Files
-https://www.census.gov/naics/?68967
-Different survey years use different NAICS codes. We use these concordance files to harmonize all codes to 2022.
+# Examples
+```
+import intltrade
+i = intltrade.IntlTrade()
+i.available_vars # Shows what variables are available by endpoint
+dfs = i.lookup_all() # Pulls all data for International Trade that is documented within api_endpoints.yml and cleans it for SCIP migration.
+```
