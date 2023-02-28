@@ -65,8 +65,10 @@ class Api(DataSource):
                 if self.attributes:
                     attributes = self.available_vars.get(
                         endpoint
-                    )[field]['attributes']
+                    )[field]['attributes'] #set deals with edge cases where the same field gets repeated in variables.json
                     if attributes:
+                        attributes = set(attributes.split(","))
+                        attributes = ",".join(attributes)
                         fields_to_use.append(attributes)
             else:
                 logging.warning(
@@ -149,10 +151,16 @@ class Survey(Api):
         super().__init__()
 
     def remove_flag(self, df, flag_types):
+        '''
+        Takes a dataframe and replaces column values that have a flag within 
+        flag_types with None and then removes the flag columns.
+        '''
         flag_cols = [col for col in df if col[-2:] == "_F"]
+        def replace_flag(x, col):
+            return None if x[col] in flag_types else x[col[:-2]]
         for col in flag_cols:
             df[col[:-2]] = df.apply(
-                lambda x: None if x[col] in flag_types else x[col[:-2]], axis=1
+                lambda x: replace_flag(x, col), axis=1
             )
         df.drop(columns=flag_cols, inplace=True)
         return df
