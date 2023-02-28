@@ -5,6 +5,9 @@ This repository creates a wrapper for querying and cleaning data from Census API
 # Environment setup
 Packages use are documented in sup_chain_env.yml. To create the conda environment, run `conda env create -f sup_chain_env.yml`.
 
+# Getting started
+Fill out api_endpoints.yml.
+
 # Data sources
 
 ## Annual Survey of Manufacturers 
@@ -12,6 +15,7 @@ https://www.census.gov/data/developers/data-sets/Annual-Survey-of-Manufactures.h
 
 ## International Trade 
 https://www.census.gov/data/developers/data-sets/international-trade.html
+Requires a crosswalk which converts state abbreviations to their GEO_IDs in order to run the add_geo function. The path to the crosswalk should be saved in config.py in the variable STATE_GEOID_CROSSWALK. Current crosswalk was made manually by pulling GEOIDs and state names from econ census and then adding state abbreviations.
 
 ## Economic Census 
 https://www.census.gov/data/developers/data-sets/economic-census.html

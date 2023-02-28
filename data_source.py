@@ -6,12 +6,8 @@ import logging
 from exceptions import TooManyFields, RequestBlankException, FutureYearException, InvalidSurveyYear, UnknownDataSource
 from urls import BASE_URL_CENSUS
 from config import CENSUS_API_KEY
-import os
-# 
-settings_dir = os.path.dirname(__file__)
-PROJECT_ROOT = os.path.abspath(os.path.dirname(settings_dir))
-API_ENDPOINTS_YML = os.path.join(PROJECT_ROOT, 'supply_chain_apis/api_endpoints.yml')
-with open(API_ENDPOINTS_YML, 'r') as file:
+
+with open('api_endpoints.yml', 'r') as file:
     API_ENDPOINTS = yaml.safe_load(file)
 
 class DataSource():
@@ -27,11 +23,6 @@ class DataSource():
         return
     pass
 
-class Ftp(DataSource):
-    def __init__(self): 
-        FTP_URL_CENSUS = 'FTP'
-        self.url = API_ENDPOINTS.get(FTP_URL_CENSUS)
-
 class Api(DataSource):
     def __init__(self):
         super().__init__()
@@ -40,31 +31,29 @@ class Api(DataSource):
         self.available_vars = {}
         self.geographies = {}
         self.attributes = True
-        self.api_params = {
-            'get': [],
-            'key': [CENSUS_API_KEY]
-        }
 
-    def lookup_subfields(self, endpoint, geo_id=False):
-        if geo_id:
-            self.api_params['get'].append(geo_id)
+    def lookup_all(self):
+        endpoint_dict = API_ENDPOINTS[self.name]
+        dfs = []
+        for endpoint, params in endpoint_dict.items():
+            if params:
+                dfs.append(self.lookup(endpoint, params))
+        return dfs
+
+    def lookup_subfields(self, endpoint, params):
         url = self.url + endpoint + "?"
         param_strings = []
-        for param, values in self.api_params.items():
+        for param, values in params.items():
             param_strings.append(param + "=" + ",".join(values))
         url += "&".join(param_strings)
-        
-        # "?get={}{}&for={}:*&NAICS2017=*&key={}".format(
-        #     "GEO_ID," if geo_id else '',
-        #     ",".join(sub_fields),
-        #     geo,
-        #     CENSUS_API_KEY
-        # )
         print(url)
         return self.get_request(url)
 
-    def lookup(self, endpoint, fields=[]):
+    def lookup(self, endpoint, params):
         #TO DO: split the lookup if more than 50 fields requested
+        fields = params['get']
+        if not params.get('key'):
+            params['key'] = [CENSUS_API_KEY]
         available_fields = list(self.available_vars.get(endpoint).keys())
         assert available_fields, endpoint + " is not available."
         if not fields:
@@ -88,8 +77,8 @@ class Api(DataSource):
         if len(fields_to_use) > 49:
             raise TooManyFields
         else:
-            self.api_params['get'] = fields_to_use
-            return self.lookup_subfields(endpoint)
+            params['get'] = fields_to_use
+            return self.lookup_subfields(endpoint, params)
     
     def populate_vars(self, fields_needed):
         def _lookup_vars(endpoint):
@@ -157,8 +146,7 @@ class Api(DataSource):
 
 class Survey(Api):
     def __init__(self):
-        super().__init__()       
-        self.available_vars = self.populate_vars(['label', 'attributes'])
+        super().__init__()
 
     def remove_flag(self, df, flag_types):
         flag_cols = [col for col in df if col[-2:] == "_F"]
@@ -169,9 +157,9 @@ class Survey(Api):
         df.drop(columns=flag_cols, inplace=True)
         return df
 
-    def lookup_subfields(self, geo, endpoint, sub_fields, geo_id=True):
+    def lookup_subfields(self, endpoint, params):
         return self.remove_flag(
-            super.lookup_subfields(geo, endpoint, sub_fields),
+            super().lookup_subfields(endpoint, params),
             ["D", "X"]
         )
 
