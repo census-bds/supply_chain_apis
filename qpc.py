@@ -30,28 +30,18 @@ class QPC(Ftp):
                     urls.append((a['href'], extracted_url))
         print("urls!!: ", urls)
         return urls
-    def clean_excel_file(self, xl, sheetname): 
-        print(xl)
-        print(sheetname)
+    def clean_excel_file(self, sheet): 
+        print(sheet)
+        for merge in list(sheet.merged_cells): 
+            print(merge)
+            unmerged = sheet.unmerge_cells(range_string=str(merge))
+            print(unmerged)
         # print(xl[sheetname])
         # ws = xl[sheetname]
         # for merge in list(ws.merged_cells):
         #     ws.unmerge_cells(range_string=str(merge))
 
 
-
-    # def clean_dataframe(self, xl, sheetname):
-    #     df = pd.read_excel(
-    #         xl, 
-    #         name, 
-    #         header = header_sheet_configs[name][0], 
-    #         usecols = header_sheet_configs[name][1], 
-    #         true_values = ['c']
-    #     ) 
-    #     df = df.rename(columns = unnamed)
-    #     df[new_unnamed] = df[new_unnamed].fillna(False)
-    #     df = df.replace('c', True)
-                    
     def clean_qpc_file(self, urls): 
         dfs = []
         # look into openpxyl's ability to merge multiple row labels of a column
@@ -70,11 +60,16 @@ class QPC(Ftp):
 
         for (label, url) in urls: 
             content = requests.get(url).content
+            bytes_content = io.BytesIO(content)
+            wb = openpyxl.load_workbook(bytes_content)
+            for ws in wb.worksheets:
+                cleaned_sheet = self.clean_excel_file(ws) 
+
             print("url: ", url)
-            xl = pd.ExcelFile(content, engine = "openpyxl")
-            print(type(xl))
-            for name in xl.sheet_names: 
-                self.clean_excel_file(xl, name)
+            # xl = pd.ExcelFile(content, engine = "openpyxl")
+            # print(type(xl))
+            # for name in xl.sheet_names: 
+            #     self.clean_excel_file(xl, name)
                 # if name in header_sheet_configs: 
                     # self.clean_dataframe(xl, name)
                     # dfs.append((label, df))
