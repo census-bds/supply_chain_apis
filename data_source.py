@@ -6,6 +6,7 @@ import logging
 from exceptions import TooManyFields, RequestBlankException, FutureYearException, InvalidSurveyYear, UnknownDataSource
 from urls import BASE_URL_CENSUS
 from config import CENSUS_API_KEY
+import itertools
 
 with open('api_endpoints.yml', 'r') as file:
     API_ENDPOINTS = yaml.safe_load(file)
@@ -37,17 +38,33 @@ class Api(DataSource):
         dfs = []
         for endpoint, params in endpoint_dict.items():
             if params:
-                dfs.append(self.lookup(endpoint, params))
+                dfs += self.lookup(endpoint, params)
         return dfs
-
+    def query_combos(self, params):
+        output = []
+        for param_name, param_values in params.items():
+            if param_name != 'get':
+                queries = [
+                    (param_name, param_value) for param_value in param_values
+                ]
+                output.append(queries)
+        return list(itertools.product(*output))
+    
     def lookup_subfields(self, endpoint, params):
-        url = self.url + endpoint + "?"
-        param_strings = []
-        for param, values in params.items():
-            param_strings.append(param + "=" + ",".join(values))
-        url += "&".join(param_strings)
-        print(url)
-        return self.get_request(url)
+        get_param = params.get('get')
+        query_combos = self.query_combos(params)
+        output_list = []
+        for combo in query_combos:
+            url = self.url + endpoint + "?"
+            param_strings = []
+            if get_param:
+                param_strings.append('get' + "=" + ",".join(get_param))
+            for param_name, param_value in combo:
+                param_strings.append(param_name + "=" + param_value)
+            url += "&".join(param_strings)
+            print(url)
+            output_list.append(self.get_request(url))
+        return output_list
 
     def lookup(self, endpoint, params):
         #TO DO: split the lookup if more than 50 fields requested
@@ -70,12 +87,12 @@ class Api(DataSource):
                         attributes = set(attributes.split(","))
                         attributes = ",".join(attributes)
                         fields_to_use.append(attributes)
-            else:
-                logging.warning(
-                    "{} is not an available field for endpoint {}".format(
-                        field, endpoint
-                    )
-                )
+            # else:
+            #     logging.warning(
+            #         "{} is not an available field for endpoint {}".format(
+            #             field, endpoint
+            #         )
+            #     )
         if len(fields_to_use) > 49:
             raise TooManyFields
         else:
@@ -155,7 +172,7 @@ class Survey(Api):
         Takes a dataframe and replaces column values that have a flag within 
         flag_types with None and then removes the flag columns.
         '''
-        flag_cols = [col for col in df if col[-2:] == "_F"]
+        flag_cols = [col for col in df.columns if col[-2:] == "_F"]
         def replace_flag(x, col):
             return None if x[col] in flag_types else x[col[:-2]]
         for col in flag_cols:
@@ -166,8 +183,11 @@ class Survey(Api):
         return df
 
     def lookup_subfields(self, endpoint, params):
-        return self.remove_flag(
-            super().lookup_subfields(endpoint, params),
-            ["D", "X"]
-        )
+        return [
+            self.remove_flag(
+                df, ["D", "X"]
+            ) for df in super().lookup_subfields(
+                endpoint, params
+            )
+        ]
 

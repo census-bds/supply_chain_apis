@@ -31,8 +31,8 @@ class IntlTrade(data_source.Api):
         )
     
     def lookup(self, endpoint, params):
-        df = super().lookup(endpoint, params)
-        return self.add_geo(df)
+        dfs = super().lookup(endpoint, params)
+        return [self.add_geo(df) for df in dfs]
 
     def add_geo(self, df):
         if not isinstance(self.state_geoid_xwalk, pd.DataFrame):

@@ -23,3 +23,16 @@ Economic Census:
     for: ['state:*']
   2017/ecnsize:
     get: ['GEO_ID', 'HHI', 'RCPTOT']
+  2017/ecnnapcsind:
+    get: ['GEO_ID', 'NAPCS2017', 'ESTAB']
+    for: ['state:*&NAICS2017=*', 'us:*']
+  2017/ecnnapcsprd:
+    get: ['GEO_ID', 'NAICS2017', 'NAPCS2017']
+    for: ['us:*']
+Annual Survey of Manufacturing:
+  timeseries/asm/area2017:    
+    get: ['GEO_ID', 'NAICS2017', 'ESTAB', 'RCPTOT']
+    for: ['us:*', 'state:*']
+    time: ['2021', '2020']
+
+
